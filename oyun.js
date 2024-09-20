@@ -45,12 +45,17 @@ var tus = { ArrowUp:0, ArrowLeft:0, ArrowRight:0 };
 // player
 var player = new function() {
     this.x = c.width / 2;
-    this.y = 50;
+    this.y = 400;
     this.truck = new Image();
     this.truck.src = "image/t.png"
     this.rot = 0;
     this.ySpeed = 0;
     this.rSpeed = 0;
+    this.xSpeed = 0; // Başlangıçta x hızı
+    this.ySpeed = 0; // Başlangıçta y hızı
+    this.distanceTraveled = 0; // Alınan mesafe
+    this.lastSpeed = 0; // Son hız değeri
+    this.engineSound = new Audio('sound/Truck sounds.mp3'); // Ses dosyasını yükle
 
     // interface
     this.startBtn = new Image();
@@ -92,7 +97,7 @@ var player = new function() {
             this.y = p1 - 48;
             gnd = 1;
         }
-        this.y = p1 - 50;  // ********* sorunu sonra çöz
+        //this.y = p1 - 50;  // ********* sorunu sonra çöz
 
         // fall check
         if(!playing || gnd && Math.abs(this.rot) > Math.PI * 0.5) {
@@ -100,14 +105,28 @@ var player = new function() {
             this.rSpeed = 5;
             tus.ArrowUp = 1;
             this.x -= speed * 5;
+        } else {
+            // Aracın havalandığında yavaşlamasını sağla
+            this.ySpeed *= 0.9; // Yavaşlama oranı
+            this.ySpeed += 0.5; // Düşme hızını artır
         }
-
         
         // rotation calc
         var angle = Math.atan2((p2 - 50) - this.y, ((this.x + 5) + this.x));
         if(gnd && playing) {
             this.rot = (this.rot - angle) * 0.05;
             this.rSpeed = this.rSpeed - (angle - this.rot);
+        } else {
+            // Yere inmeden önce rotayı ayarla
+            this.rot += this.rSpeed * 0.1; // Rotayı yavaşça ayarla
+        }
+
+        // Aracın hareketi
+        if (tus.ArrowRight) {
+            this.y += 30; // Sağ yön tuşuna basıldığında ön tarafı aşağı hareket ettir
+        }
+        if (tus.ArrowLeft) {
+            this.y += 5; // Sol yön tuşuna basıldığında arka tarafı aşağı hareket ettir
         }
 
         this.speed += (tus.ArrowLeft - tus.ArrowRight) * 0.05;
@@ -119,6 +138,25 @@ var player = new function() {
 
         this.y += this.ySpeed;
 
+        // Hız değerini güncelle
+        this.speed = Math.sqrt(this.xSpeed * this.xSpeed + this.ySpeed * this.ySpeed); // Hız hesaplama
+        this.lastSpeed += (this.speed - this.lastSpeed) * 0.05; // Hızı daha az oranda yumuşatma
+        document.getElementById('speedDisplay').innerText = 'Hız: ' + Math.round(this.lastSpeed) + ' ' + 'm/s'; // Ekranda göster
+
+        // Alınan mesafeyi güncelle
+        this.distanceTraveled += this.lastSpeed * 0.1; // Mesafeyi güncelle (zaman dilimi ile)
+        document.getElementById('scoreDisplay').innerText = 'Skor: ' + Math.round(this.distanceTraveled); // Ekranda göster
+
+        // Aracın hareketi
+        if (tus.ArrowUp) {
+            if (this.engineSound.paused) {
+                this.engineSound.play(); // Ses çal
+            }
+        } else if (this.ySpeed = 0){
+            this.engineSound.pause(); // Ses durdur
+            this.engineSound.currentTime = 0; // Sesin başa dönmesini sağla
+        }
+
         // drawing
         // truck draw
         ctx.save();
@@ -129,7 +167,9 @@ var player = new function() {
     }
 }
 
-
+// Başlangıçta hız değerini 0 olarak ayarla
+document.getElementById('speedDisplay').innerText = 'Hız: 0';
+document.getElementById('scoreDisplay').innerText = 'Skor: 0'; // Başlangıçta skor 0
 
 // draw
 function draw(){
@@ -227,22 +267,4 @@ function checkBtnPress(x,y) {
         tus.ArrowUp = 0;
     }
 }
-/*
-function checkBtnRelase(x,y) {
-    if (!playing && x > ((c.width/2) - 25) && x < ((c.width/2) + 25) && y > ((c.height/3) + 50) && y < ((c.height/3) + 100)) {
-        window.location.reload();
-    }
-    if (playing && x > 20 && x < 100 && y > (c.height - 100) && y < (c.height - 20)) {
-        console.log("sol.btn");
-        tus.ArrowLeft = 0;
-    }
-    if (playing && x > 110 && x < 190 && y > (c.height - 100) && y < (c.height - 20)) {
-        console.log("sag.btn");
-        tus.ArrowRight = 0;
-    }
-    if (playing && x > c.width - 120 && x < (c.width - 40) && y > (c.height - 100) && y < (c.height - 20)) {
-        console.log("gaz.btn");
-        tus.ArrowUp = 0;
-    }
-}
-*/
+
