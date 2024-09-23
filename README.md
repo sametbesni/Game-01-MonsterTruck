@@ -13,7 +13,7 @@ Bu proje, bir kamyonun hareket ettiği ve kullanıcı etkileşimi ile kontrol ed
 
 1. Projeyi klonlayın:
    ```bash
-   git clone https://github.com/kullaniciadi/oyun-projesi.git
+   git clone https://github.com/sametbesni/Game-01-MonsterTruck.git
    ```
 
 2. Gerekli dosyaları yükleyin:
